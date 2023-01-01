@@ -2,7 +2,8 @@
   "packages": [
     "go_1_19",
     "pre-commit",
-    "ruby"
+    "ruby",
+    "kubectl"
   ],
   "shell": {
     "init_hook": [

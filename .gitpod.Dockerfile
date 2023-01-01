@@ -2,7 +2,7 @@ FROM gitpod/workspace-full
 
 # Gitpod Package Manager
 RUN curl -sfL gpm.simonemms.com | bash \
-  && gpm install pre-commit
+  && gpm install kubectl pre-commit
 
 # Golang dependencies
 RUN go install github.com/spf13/cobra-cli@latest \
