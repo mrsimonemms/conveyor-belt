@@ -1,0 +1,53 @@
+apiVersion: conveyor-belt.simonemms.com/v1alpha1
+kind: Pipeline
+metadata:
+  name: basic
+spec:
+  port: 3000
+  stages:
+    # Stages are groups that control the order things are run in - there can be >= 0 items in each stage
+    - stage1
+    - stage2
+  jobs:
+    # Define the jobs. Stages are run in parallel and can receive data on the {{ .Data }} variable from a previous job
+    - name: item1
+      stage: stage1
+      action:
+        http:
+          method: POST
+          url: https://eosv8e8x84ccn8d.m.pipedream.net?stage=stage1&name=item1
+          data:
+            hello: world
+            oi oi: true
+            number: 2
+
+    - name: item2
+      stage: stage1
+      action:
+        http:
+          method: POST
+          url: https://eosv8e8x84ccn8d.m.pipedream.net?stage=stage1&name=item2
+          data:
+            hello: world2
+            oi oi: false
+            number: 3
+
+    - name: item3
+      stage: stage2
+      action:
+        http:
+          method: POST
+          url: https://eosv8e8x84ccn8d.m.pipedream.net?stage=stage2&name=item3
+          data:
+            # @todo(sje): how do I send non-quoted data - boolean, number etc?
+            name: "{{ .Response.stage1.item1.Body.name }}"
+            bool: "{{ .Response.stage1.item1.Body.success }}"
+  error:
+    # Error defines what happens if the pipelines error. This is a special job
+    action:
+      http:
+        method: POST
+        url: https://eosv8e8x84ccn8d.m.pipedream.net?stage=error&name=errorHandler
+  triggers:
+    # Triggers defines how a pipeline can be started
+    - type: webhook # This will receive on POST:/webhook/basic
