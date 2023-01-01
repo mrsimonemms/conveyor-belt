@@ -19,12 +19,14 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/rs/zerolog"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
 var rootOpts struct {
-	CfgFile string
+	CfgFile  string
+	LogLevel string
 }
 
 // rootCmd represents the base command when called without any subcommands
@@ -46,11 +48,23 @@ func init() {
 	rootCmd = &cobra.Command{
 		Use:   filepath.Base(exec),
 		Short: "Build your own pipelines",
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			// Set log level
+			lvl, err := zerolog.ParseLevel(rootOpts.LogLevel)
+			if err != nil {
+				return err
+			}
+			zerolog.SetGlobalLevel(lvl)
+
+			return nil
+		},
 	}
 
 	dir, err := os.Getwd()
 	cobra.CheckErr(err)
 
 	viper.SetDefault("config", filepath.Join(dir, "config.yaml"))
+	viper.SetDefault("log-level", zerolog.InfoLevel)
 	rootCmd.PersistentFlags().StringVarP(&rootOpts.CfgFile, "config", "c", viper.GetString("config"), "path to config file")
+	rootCmd.PersistentFlags().StringVar(&rootOpts.LogLevel, "log-level", viper.GetString("log-level"), "log level")
 }

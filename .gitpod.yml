@@ -27,6 +27,11 @@ tasks:
         go mod tidy
       fi
 
+ports:
+  - name: App
+    port: 3000
+    visibility: private
+
 vscode:
   extensions:
     - donjayamanne.git-extension-pack
