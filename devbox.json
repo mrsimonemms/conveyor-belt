@@ -1,0 +1,25 @@
+{
+  "packages": [
+    "go_1_19",
+    "pre-commit",
+    "ruby"
+  ],
+  "shell": {
+    "init_hook": [
+      "export PATH=\"${PATH}:${HOME}/go/bin\"",
+      "go install github.com/spf13/cobra-cli@latest",
+      "go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest",
+      "go install github.com/kisielk/errcheck@latest",
+      "go install mvdan.cc/gofumpt@latest",
+      "go install honnef.co/go/tools/cmd/staticcheck@latest",
+      "go install golang.org/x/tools/cmd/goimports@latest",
+      "pre-commit install --install-hooks",
+      "if [ -f \"go.mod\" ]; then\n go install ./...\n fi",
+      "cp .cobra.yaml $HOME/.cobra.yaml",
+      "pre-commit install --install-hooks"
+    ]
+  },
+  "nixpkgs": {
+    "commit": "52e3e80afff4b16ccb7c52e9f0f5220552f03d04"
+  }
+}
