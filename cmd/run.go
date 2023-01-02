@@ -16,6 +16,7 @@ limitations under the License.
 package cmd
 
 import (
+	"github.com/mrsimonemms/conveyor-belt/pkg/config"
 	"github.com/mrsimonemms/conveyor-belt/pkg/server"
 	"github.com/spf13/cobra"
 )
@@ -25,8 +26,12 @@ var runCmd = &cobra.Command{
 	Use:   "run",
 	Short: "Run the application",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// @todo(sje): get port from config
-		s := server.New(3000)
+		cfg, err := config.Load(rootOpts.CfgFile)
+		if err != nil {
+			return err
+		}
+
+		s := server.New(cfg)
 
 		return s.Start()
 	},

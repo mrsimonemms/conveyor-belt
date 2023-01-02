@@ -6,11 +6,13 @@ import (
 
 	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
+	"github.com/mrsimonemms/conveyor-belt/pkg/config"
 	logger "github.com/mrsimonemms/gin-structured-logger"
 	"github.com/rs/zerolog/log"
 )
 
 type Server struct {
+	cfg  *config.Config
 	gin  *gin.Engine
 	port int
 }
@@ -21,7 +23,7 @@ func (s *Server) Start() error {
 	return s.gin.Run(fmt.Sprintf(":%d", s.port))
 }
 
-func New(port int) Server {
+func New(cfg *config.Config) Server {
 	gin.SetMode(gin.ReleaseMode)
 
 	r := gin.New()
@@ -44,9 +46,14 @@ func New(port int) Server {
 		})
 	})
 
-	log.Info().Int("port", port).Msg("Starting server...")
+	port := cfg.Spec.Port
+	if port == 0 {
+		log.Debug().Msg("Port not set")
+		port = 3000
+	}
 
 	return Server{
+		cfg:  cfg,
 		gin:  r,
 		port: port,
 	}
