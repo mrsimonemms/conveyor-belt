@@ -33,6 +33,10 @@ var runCmd = &cobra.Command{
 
 		s := server.New(cfg)
 
+		if err := s.Triggers(); err != nil {
+			return err
+		}
+
 		return s.Start()
 	},
 }
