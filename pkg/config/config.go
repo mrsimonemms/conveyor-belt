@@ -1,5 +1,11 @@
 package config
 
+import (
+	"time"
+
+	"k8s.io/utils/pointer"
+)
+
 type Config struct {
 	APIVersion string         `json:"apiVersion"`
 	Kind       string         `json:"kind"`
@@ -20,7 +26,15 @@ type PipelineConfig struct {
 }
 
 type PipelineAction struct {
-	HTTP PipelineActionHTTP `json:"http"`
+	HTTP *PipelineActionHTTP `json:"http,omitempty"`
+}
+
+func (a PipelineAction) GetActionKey() *string {
+	if a.HTTP != nil {
+		return pointer.String("http")
+	}
+
+	return nil
 }
 
 // @todo(sje): might be able to use something else
@@ -31,9 +45,10 @@ type PipelineActionHTTP struct {
 }
 
 type PipelineJob struct {
-	Name   string         `json:"name"`
-	Stage  string         `json:"stage"`
-	Action PipelineAction `json:"action"`
+	Name    string         `json:"name"`
+	Stage   string         `json:"stage"`
+	Action  PipelineAction `json:"action"`
+	Timeout *time.Duration `json:"timeout,omitempty"`
 }
 
 type PipelineTrigger struct {

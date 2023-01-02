@@ -17,6 +17,7 @@ package cmd
 
 import (
 	"github.com/mrsimonemms/conveyor-belt/pkg/config"
+	"github.com/mrsimonemms/conveyor-belt/pkg/pipeline"
 	"github.com/mrsimonemms/conveyor-belt/pkg/server"
 	"github.com/spf13/cobra"
 )
@@ -33,7 +34,12 @@ var runCmd = &cobra.Command{
 
 		s := server.New(cfg)
 
-		if err := s.Triggers(); err != nil {
+		p, err := pipeline.Build(cfg)
+		if err != nil {
+			return err
+		}
+
+		if err := s.Triggers(p); err != nil {
 			return err
 		}
 
