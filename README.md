@@ -6,6 +6,7 @@
 * [Purpose](#purpose)
 * [Getting Started](#getting-started)
   * [Including Dynamic Data](#including-dynamic-data)
+* [Kubernetes](#kubernetes)
 * [Project Status](#project-status)
 * [Contributing](#contributing)
   * [Open in Gitpod](#open-in-gitpod)
@@ -91,6 +92,69 @@ jobs can be run in any order.
 You can call it by specifying "{{ .Response.\<stage-name\>.\<item-name\>.Body.\<key\> }}"
 in your `data` key/value pairs. A fully worked example would be
 `name: "{{ .Response.stage1.item1.Body.name }}"`.
+
+## Kubernetes
+
+At some point, I may publish this to my [Helm registry](https://helm.simonemms.com).
+Until then, use the following template:
+
+```yaml
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: conveyor-belt-config
+  labels:
+    app: conveyor-belt
+data:
+  config.yaml: | # Insert your config file as-above
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: conveyor-belt
+  labels:
+    app: conveyor-belt
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: conveyor-belt
+  template:
+    metadata:
+      labels:
+        app: conveyor-belt
+    spec:
+      containers:
+        - name: conveyor-belt
+          image: ghcr.io/mrsimonemms/conveyor-belt:0.0.1
+          args:
+            - run
+            - --config=/config/config.yaml
+          ports:
+            - containerPort: 3000
+          volumeMounts:
+            - name: config
+              mountPath: /config
+      volumes:
+        - name: config
+          configMap:
+            name: conveyor-belt-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: conveyor-belt
+  labels:
+    app: conveyor-belt
+spec:
+  selector:
+    app: conveyor-belt
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+```
 
 ## Project Status
 
