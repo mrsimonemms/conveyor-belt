@@ -15,7 +15,7 @@ import (
 )
 
 type Pipeline struct {
-	Error    Job                          // The error is used as a circuit-breaker
+	Error    *Job                         // The error is used as a circuit-breaker
 	Name     string                       // The pipeline name
 	Jobs     *list.List                   // The jobs to run in stage order
 	Response map[string]map[string]Result // The collated responses from each call - keys are "stage" and "job"
@@ -86,11 +86,32 @@ func (p *Pipeline) Run() error {
 			continue
 		case err := <-errChan:
 			close(errChan)
-			return err
+
+			if err := p.TriggerError(err); err != nil {
+				// The trigger error has failed - store error internally
+				return err
+			}
+			// Error has successfully triggered
+			return nil
 		}
 	}
 
 	pipelineLog.Debug().Msg("Pipeline completed successfully")
+
+	return nil
+}
+
+func (p *Pipeline) TriggerError(errorToSend error) error {
+	if p.Error == nil {
+		log.Error().Err(errorToSend).Msg("No error trigger configured")
+
+		return errorToSend
+	}
+
+	if _, err := p.Error.Exec(p); err != nil {
+		log.Error().Err(err).Msg("Error trigger failed")
+		return err
+	}
 
 	return nil
 }
@@ -124,10 +145,15 @@ func Build(cfg *config.Config) (*Pipeline, error) {
 		return nil, ErrNoJobs
 	}
 
+	var errorJob *Job
+	if cfg.Spec.Error != nil {
+		errorJob = &Job{
+			PipelineJob: *cfg.Spec.Error,
+		}
+	}
+
 	return &Pipeline{
-		Error: Job{
-			PipelineJob: cfg.Spec.Error,
-		},
+		Error:  errorJob,
 		Name:   cfg.Metadata.Name,
 		Jobs:   jobList,
 		Stages: stages,

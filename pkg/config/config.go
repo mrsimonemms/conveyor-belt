@@ -18,7 +18,7 @@ type Metadata struct {
 }
 
 type PipelineConfig struct {
-	Error    PipelineJob       `json:"error"`
+	Error    *PipelineJob      `json:"error,omitempty"`
 	Jobs     []PipelineJob     `json:"jobs"`
 	Port     int               `json:"port"`
 	Stages   []string          `json:"stages"`
