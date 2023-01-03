@@ -12,13 +12,12 @@ import (
 
 func webhookHandler(p *pipeline.Pipeline) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		if err := p.Run(); err != nil {
-			// @todo(sje): handle errors
-			ctx.JSON(http.StatusBadRequest, "some error happened")
-			return
-		}
+		// Run as async go routine
+		go func() {
+			_ = p.Run()
+		}()
 
-		ctx.JSON(http.StatusAccepted, "hello world2")
+		ctx.Writer.WriteHeader(http.StatusAccepted)
 	}
 }
 
