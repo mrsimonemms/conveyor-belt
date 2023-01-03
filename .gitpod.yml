@@ -33,3 +33,4 @@ vscode:
     - EditorConfig.EditorConfig
     - golang.go
     - ms-kubernetes-tools.vscode-kubernetes-tools
+    - ms-vscode.makefile-tools
