@@ -27,6 +27,10 @@ tasks:
         go mod tidy
       fi
 
+      make run
+  - command: make trigger
+    openMode: split-right
+
 ports:
   - name: App
     port: 3000
