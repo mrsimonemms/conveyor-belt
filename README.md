@@ -128,7 +128,7 @@ spec:
     spec:
       containers:
         - name: conveyor-belt
-          image: ghcr.io/mrsimonemms/conveyor-belt:0.0.1
+          image: ghcr.io/mrsimonemms/conveyor-belt:0.0.2
           args:
             - run
             - --config=/config/config.yaml
