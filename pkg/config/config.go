@@ -7,26 +7,26 @@ import (
 )
 
 type Config struct {
-	APIVersion string         `json:"apiVersion"`
-	Kind       string         `json:"kind"`
-	Metadata   Metadata       `json:"metadata"`
-	Spec       PipelineConfig `json:"spec"`
+	APIVersion string         `yaml:"apiVersion"`
+	Kind       string         `yaml:"kind"`
+	Metadata   Metadata       `yaml:"metadata"`
+	Spec       PipelineConfig `yaml:"spec"`
 }
 
 type Metadata struct {
-	Name string `json:"name"`
+	Name string `yaml:"name"`
 }
 
 type PipelineConfig struct {
-	Error    *PipelineJob      `json:"error,omitempty"`
-	Jobs     []PipelineJob     `json:"jobs"`
-	Port     int               `json:"port"`
-	Stages   []string          `json:"stages"`
-	Triggers []PipelineTrigger `json:"triggers"`
+	Error    *PipelineJob      `yaml:"error,omitempty"`
+	Jobs     []PipelineJob     `yaml:"jobs"`
+	Port     int               `yaml:"port"`
+	Stages   []string          `yaml:"stages"`
+	Triggers []PipelineTrigger `yaml:"triggers"`
 }
 
 type PipelineAction struct {
-	HTTP *PipelineActionHTTP `json:"http,omitempty"`
+	HTTP *PipelineActionHTTP `yaml:"http,omitempty"`
 }
 
 func (a PipelineAction) GetActionKey() *string {
@@ -39,20 +39,20 @@ func (a PipelineAction) GetActionKey() *string {
 
 // @todo(sje): might be able to use something else
 type PipelineActionHTTP struct {
-	Method string         `json:"method"`
-	URL    string         `json:"url"`
-	Data   map[string]any `json:"data"`
+	Method string         `yaml:"method"`
+	URL    string         `yaml:"url"`
+	Data   map[string]any `yaml:"data"`
 }
 
 type PipelineJob struct {
-	Name    string         `json:"name"`
-	Stage   string         `json:"stage"`
-	Action  PipelineAction `json:"action"`
-	Timeout *time.Duration `json:"timeout,omitempty"`
+	Name    string         `yaml:"name"`
+	Stage   string         `yaml:"stage"`
+	Action  PipelineAction `yaml:"action"`
+	Timeout *time.Duration `yaml:"timeout,omitempty"`
 }
 
 type PipelineTrigger struct {
-	Type PipelineTriggerType `json:"type"`
+	Type PipelineTriggerType `yaml:"type"`
 }
 
 type PipelineTriggerType string
