@@ -44,7 +44,7 @@ func (p *Pipeline) Run() error {
 
 	pipelineLog := log.Logger.With().Str("pipelineId", uuid.NewString()).Str("pipelineName", p.Name).Logger()
 
-	pipelineLog.Debug().Msg("Pipeline triggered")
+	pipelineLog.Info().Msg("Pipeline triggered")
 
 	for stageList := p.Jobs.Front(); stageList != nil; stageList = stageList.Next() {
 		wgDone := make(chan bool)
@@ -62,12 +62,13 @@ func (p *Pipeline) Run() error {
 			go func(job Job) {
 				defer wg.Done()
 
-				jobLog.Debug().Msg("Executing job")
+				jobLog.Info().Msg("Executing job")
 
 				if result, err := job.Exec(p); err != nil {
 					errChan <- err
 					jobLog.Error().Err(err).Msg("Job errored")
 				} else {
+					jobLog.Info().Msg("Job completed")
 					p.addResponse(job, result)
 				}
 			}(job)
@@ -82,7 +83,7 @@ func (p *Pipeline) Run() error {
 
 		select {
 		case <-wgDone:
-			stageLog.Debug().Msg("Stage completed successfully")
+			stageLog.Info().Msg("Stage completed successfully")
 			continue
 		case err := <-errChan:
 			close(errChan)
@@ -96,7 +97,7 @@ func (p *Pipeline) Run() error {
 		}
 	}
 
-	pipelineLog.Debug().Msg("Pipeline completed successfully")
+	pipelineLog.Info().Msg("Pipeline completed successfully")
 
 	return nil
 }
