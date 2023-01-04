@@ -58,6 +58,7 @@ spec:
   jobs:
     - name: item1 # Name of the job - this can be anything
       stage: stage1 # Name of the stage - this must be in spec.stages
+      timeout: 10s # Timeout, as a go duration - set to 0 to never timeout. Defaults to 30s
       # action - this is what happens
       action:
         # http - this is currently the only supported action

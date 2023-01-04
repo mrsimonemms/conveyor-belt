@@ -12,6 +12,7 @@ spec:
     # Define the jobs. Stages are run in parallel and can receive data on the {{ .Data }} variable from a previous job
     - name: item1
       stage: stage1
+      timeout: 30s
       action:
         http:
           method: POST
