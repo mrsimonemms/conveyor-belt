@@ -7,25 +7,33 @@ import (
 	"fmt"
 	"html/template"
 	"sync"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/mrsimonemms/conveyor-belt/pkg/config"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/exp/slices"
 )
 
 type Pipeline struct {
-	Error    *Job                         // The error is used as a circuit-breaker
-	Name     string                       // The pipeline name
-	Jobs     *list.List                   // The jobs to run in stage order
-	Response map[string]map[string]Result // The collated responses from each call - keys are "stage" and "job"
-	Stages   []string                     // Stages and their ordering
+	Error    *Job                         `json:"-"`        // The error is used as a circuit-breaker
+	Name     string                       `json:"name"`     // The pipeline name
+	Jobs     *list.List                   `json:"-"`        // The jobs to run in stage order
+	Response map[string]map[string]Result `json:"response"` // The collated responses from each call - keys are "stage" and "job"
+	Stages   []string                     `json:"stages"`   // Stages and their ordering
+	Time     struct {
+		Start time.Time `json:"start"` // Used to calculate the execution time
+		Total Duration  `json:"total"` // Used to display for the output
+	} `json:"executionTime"`
 }
 
 type Stage struct {
 	Stage string
 	Jobs  []Job
 }
+
+type CompletionAction func(*Pipeline, zerolog.Logger)
 
 func (p *Pipeline) addResponse(job Job, result *Result) {
 	// Save the response data
@@ -39,7 +47,16 @@ func (p *Pipeline) addResponse(job Job, result *Result) {
 	p.Response[job.Stage][job.Name] = *result
 }
 
-func (p *Pipeline) Run() error {
+func (p *Pipeline) stopTimer() time.Duration {
+	p.Time.Total.Duration = time.Since(p.Time.Start)
+
+	return p.Time.Total.Duration
+}
+
+func (p *Pipeline) Run(postActions ...CompletionAction) error {
+	// Record the start time
+	p.Time.Start = time.Now()
+
 	var wg sync.WaitGroup
 
 	pipelineLog := log.Logger.With().Str("pipelineId", uuid.NewString()).Str("pipelineName", p.Name).Logger()
@@ -88,16 +105,31 @@ func (p *Pipeline) Run() error {
 		case err := <-errChan:
 			close(errChan)
 
+			p.stopTimer()
+
+			pipelineLog = pipelineLog.With().Dur("duration", p.Time.Total.Duration).Logger()
+
+			pipelineLog.Error().Err(err).Msg("Pipeline errored - triggering error job")
+
 			if err := p.TriggerError(err); err != nil {
 				// The trigger error has failed - store error internally
+				pipelineLog.Error().Err(err).Msg("Pipeline error job failed")
 				return err
 			}
 			// Error has successfully triggered
+			pipelineLog.Debug().Msg("Pipeline error message sent")
 			return nil
 		}
 	}
 
-	pipelineLog.Info().Msg("Pipeline completed successfully")
+	// Calculate the duration
+	p.stopTimer()
+
+	for _, c := range postActions {
+		c(p, pipelineLog)
+	}
+
+	pipelineLog.Info().Dur("duration", p.Time.Total.Duration).Msg("Pipeline completed successfully")
 
 	return nil
 }

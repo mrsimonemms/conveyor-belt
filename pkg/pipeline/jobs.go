@@ -37,7 +37,7 @@ func (j *Job) Exec(p *Pipeline) (*Result, error) {
 }
 
 type Result struct {
-	Status  int
-	Headers http.Header
-	Body    map[string]any
+	Status  int            `json:"status"`
+	Headers http.Header    `json:"headers"`
+	Body    map[string]any `json:"body"`
 }
