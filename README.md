@@ -7,6 +7,8 @@
 * [Getting Started](#getting-started)
   * [Including Dynamic Data](#including-dynamic-data)
 * [Kubernetes](#kubernetes)
+* [Triggers](#triggers)
+  * [HTTP](#http)
 * [Project Status](#project-status)
 * [Contributing](#contributing)
   * [Open in Gitpod](#open-in-gitpod)
@@ -155,6 +157,42 @@ spec:
     - protocol: TCP
       port: 3000
       targetPort: 3000
+```
+
+## Triggers
+
+In pipeline must be started by a trigger
+
+### HTTP
+
+This runs on `POST:/webhook/:name`. Once it's been accepted, it returns an HTTP
+202 Accepted status. The pipeline will run asynchronously after that.
+
+If you pass a URL in via the `X-Callback-URL` header, this will be called once
+the pipeline has run successfully. This will be sent as an HTTP `POST` call with
+information about the pipeline including all the data received from the jobs in
+the pipeline.
+
+```json
+{
+  "name": "\<name\>",
+  "response": {
+    "\<stage-name\>": {
+      "\<job-name\>": {
+        "status": 200, // HTTP status code
+        "headers": {}, // Key/value pairs of headers received
+        "body": {} // Key/value pairs of body received
+      }
+    }
+  }
+  "stages": [
+    "\<stage-name\>"
+  ],
+  "executionTime": {
+    "start": "2023-01-05T12:00:00.000Z", // Start time
+    "total": 123 // Time in milliseconds
+  }
+}
 ```
 
 ## Project Status

@@ -1,3 +1,4 @@
+CALLBACK_URL ?= https://eosv8e8x84ccn8d.m.pipedream.net?stage=completed
 CONFIG_FILE ?= ./examples/basic/config.yaml
 LOG_LEVEL ?= debug
 SERVER_ADDRESS ?= http://localhost:3000
@@ -10,5 +11,5 @@ run:
 .PHONY: run
 
 trigger:
-	curl -iL -X POST ${SERVER_ADDRESS}${WEBHOOK}
+	curl -iL -X POST -H "X-Callback-URL: ${CALLBACK_URL}" ${SERVER_ADDRESS}${WEBHOOK}
 .PHONY: trigger
