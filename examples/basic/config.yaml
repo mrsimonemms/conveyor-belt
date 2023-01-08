@@ -14,7 +14,7 @@ spec:
       stage: stage1
       timeout: 30s
       action:
-        http:
+        asyncHttp:
           method: POST
           url: https://eosv8e8x84ccn8d.m.pipedream.net?stage=stage1&name=item1
           data:

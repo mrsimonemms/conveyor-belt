@@ -26,12 +26,16 @@ type PipelineConfig struct {
 }
 
 type PipelineAction struct {
-	HTTP *PipelineActionHTTP `yaml:"http,omitempty"`
+	HTTP      *PipelineActionHTTP      `yaml:"http,omitempty"`
+	AsyncHTTP *PipelineActionAsyncHTTP `yaml:"asyncHttp,omitempty"`
 }
 
 func (a PipelineAction) GetActionKey() *string {
 	if a.HTTP != nil {
 		return pointer.String("http")
+	}
+	if a.AsyncHTTP != nil {
+		return pointer.String("async-http")
 	}
 
 	return nil
@@ -42,6 +46,10 @@ type PipelineActionHTTP struct {
 	Method string         `yaml:"method"`
 	URL    string         `yaml:"url"`
 	Data   map[string]any `yaml:"data"`
+}
+
+type PipelineActionAsyncHTTP struct {
+	PipelineActionHTTP `yaml:",inline"`
 }
 
 type PipelineJob struct {
