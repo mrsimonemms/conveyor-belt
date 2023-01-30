@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"os"
 	"sync"
 	"time"
 
@@ -28,9 +29,32 @@ type Pipeline struct {
 	} `json:"executionTime"`
 }
 
+var asyncCallbacks map[string]AsyncCallback
+
+func addAsyncCallback(f AsyncCallback) string {
+	if len(asyncCallbacks) == 0 {
+		asyncCallbacks = make(map[string]AsyncCallback)
+	}
+
+	id := uuid.NewString()
+	asyncCallbacks[id] = f
+
+	return id
+}
+
+func GetCallback(id string) (AsyncCallback, error) {
+	cb, ok := asyncCallbacks[id]
+	if !ok {
+		return nil, ErrUnknownAsyncCallback
+	}
+
+	return cb, nil
+}
+
 type Stage struct {
 	Stage string
 	Jobs  []Job
+	Async *config.PipelineAsync
 }
 
 type CompletionAction func(*Pipeline, zerolog.Logger)
@@ -78,6 +102,17 @@ func (p *Pipeline) Run(postActions ...CompletionAction) error {
 
 			go func(job Job) {
 				defer wg.Done()
+
+				if job.PipelineJob.Async != nil && job.PipelineJob.Async.Enabled {
+					job.AsyncJob = &AsyncJob{
+						ID: addAsyncCallback(func() error {
+							fmt.Println("this is the async callback")
+							os.Exit(1)
+
+							return nil
+						}),
+					}
+				}
 
 				jobLog.Info().Msg("Executing job")
 
@@ -171,6 +206,7 @@ func Build(cfg *config.Config) (*Pipeline, error) {
 		jobList.PushBack(Stage{
 			Stage: s,
 			Jobs:  jobs[s],
+			Async: cfg.Spec.Async,
 		})
 	}
 

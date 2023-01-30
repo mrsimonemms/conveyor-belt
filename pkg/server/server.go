@@ -52,6 +52,8 @@ func New(cfg *config.Config) Server {
 		port = 3000
 	}
 
+	async(r)
+
 	return Server{
 		cfg:  cfg,
 		gin:  r,

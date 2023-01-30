@@ -4,6 +4,8 @@ metadata:
   name: basic
 spec:
   port: 3000
+  async:
+    domain: http://localhost:3000
   stages:
     # Stages are groups that control the order things are run in - there can be >= 0 items in each stage
     - stage1
@@ -13,8 +15,12 @@ spec:
     - name: item1
       stage: stage1
       timeout: 30s
+      async:
+        enabled: true
+        callbackUrlHeader: x-callback-url
+        CallbackID: ss
       action:
-        asyncHttp:
+        http:
           method: POST
           url: https://eosv8e8x84ccn8d.m.pipedream.net?stage=stage1&name=item1
           data:

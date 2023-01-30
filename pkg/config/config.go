@@ -18,6 +18,7 @@ type Metadata struct {
 }
 
 type PipelineConfig struct {
+	Async    *PipelineAsync    `yaml:"async,omitempty"`
 	Error    *PipelineJob      `yaml:"error,omitempty"`
 	Jobs     []PipelineJob     `yaml:"jobs"`
 	Port     int               `yaml:"port"`
@@ -25,17 +26,17 @@ type PipelineConfig struct {
 	Triggers []PipelineTrigger `yaml:"triggers"`
 }
 
+type PipelineAsync struct {
+	Domain string `yaml:"domain"`
+}
+
 type PipelineAction struct {
-	HTTP      *PipelineActionHTTP      `yaml:"http,omitempty"`
-	AsyncHTTP *PipelineActionAsyncHTTP `yaml:"asyncHttp,omitempty"`
+	HTTP *PipelineActionHTTP `yaml:"http,omitempty"`
 }
 
 func (a PipelineAction) GetActionKey() *string {
 	if a.HTTP != nil {
 		return pointer.String("http")
-	}
-	if a.AsyncHTTP != nil {
-		return pointer.String("async-http")
 	}
 
 	return nil
@@ -48,15 +49,17 @@ type PipelineActionHTTP struct {
 	Data   map[string]any `yaml:"data"`
 }
 
-type PipelineActionAsyncHTTP struct {
-	PipelineActionHTTP `yaml:",inline"`
+type PipelineJob struct {
+	Async   *PipelineJobAsync `yaml:"async,omitempty"`
+	Name    string            `yaml:"name"`
+	Stage   string            `yaml:"stage"`
+	Action  PipelineAction    `yaml:"action"`
+	Timeout *time.Duration    `yaml:"timeout,omitempty"`
 }
 
-type PipelineJob struct {
-	Name    string         `yaml:"name"`
-	Stage   string         `yaml:"stage"`
-	Action  PipelineAction `yaml:"action"`
-	Timeout *time.Duration `yaml:"timeout,omitempty"`
+type PipelineJobAsync struct {
+	Enabled           bool   `yaml:"enabled"`
+	CallbackURLHeader string `yaml:"callbackUrlHeader"`
 }
 
 type PipelineTrigger struct {

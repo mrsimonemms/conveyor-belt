@@ -77,5 +77,5 @@ func (h *actionHttp) Execute(p *Pipeline, j *Job) (result *Result, err error) {
 		return
 	}
 
-	return result, nil
+	return
 }
