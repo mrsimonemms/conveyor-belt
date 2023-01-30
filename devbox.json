@@ -17,7 +17,8 @@
       "pre-commit install --install-hooks",
       "if [ -f \"go.mod\" ]; then\n go install ./...\n fi",
       "cp .cobra.yaml $HOME/.cobra.yaml",
-      "pre-commit install --install-hooks"
+      "pre-commit install --install-hooks -t pre-commit -t commit-msg",
+      "make run"
     ]
   },
   "nixpkgs": {

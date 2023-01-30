@@ -8,3 +8,4 @@ node_modules
 Thumbs.db
 .commit
 .devbox
+.envrc
