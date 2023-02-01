@@ -18,12 +18,13 @@ import (
 )
 
 type Pipeline struct {
-	Error    *Job                         `json:"-"`        // The error is used as a circuit-breaker
-	Name     string                       `json:"name"`     // The pipeline name
-	Jobs     *list.List                   `json:"-"`        // The jobs to run in stage order
-	Response map[string]map[string]Result `json:"response"` // The collated responses from each call - keys are "stage" and "job"
-	Stages   []string                     `json:"stages"`   // Stages and their ordering
-	Time     struct {
+	Error       *Job                         `json:"-"`        // The error is used as a circuit-breaker
+	Name        string                       `json:"name"`     // The pipeline name
+	AsyncDomain string                       `json:"-"`        // The domain name this is available on
+	Jobs        *list.List                   `json:"-"`        // The jobs to run in stage order
+	Response    map[string]map[string]Result `json:"response"` // The collated responses from each call - keys are "stage" and "job"
+	Stages      []string                     `json:"stages"`   // Stages and their ordering
+	Time        struct {
 		Start time.Time `json:"start"` // Used to calculate the execution time
 		Total Duration  `json:"total"` // Used to display for the output
 	} `json:"executionTime"`
@@ -222,10 +223,11 @@ func Build(cfg *config.Config) (*Pipeline, error) {
 	}
 
 	return &Pipeline{
-		Error:  errorJob,
-		Name:   cfg.Metadata.Name,
-		Jobs:   jobList,
-		Stages: stages,
+		Error:       errorJob,
+		AsyncDomain: cfg.Spec.Async.Domain,
+		Name:        cfg.Metadata.Name,
+		Jobs:        jobList,
+		Stages:      stages,
 	}, nil
 }
 

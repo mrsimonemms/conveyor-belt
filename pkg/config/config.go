@@ -1,6 +1,7 @@
 package config
 
 import (
+	"net/http"
 	"time"
 
 	"k8s.io/utils/pointer"
@@ -44,9 +45,10 @@ func (a PipelineAction) GetActionKey() *string {
 
 // @todo(sje): might be able to use something else
 type PipelineActionHTTP struct {
-	Method string         `yaml:"method"`
-	URL    string         `yaml:"url"`
-	Data   map[string]any `yaml:"data"`
+	Method  string         `yaml:"method"`
+	URL     string         `yaml:"url"`
+	Data    map[string]any `yaml:"data"`
+	Headers http.Header    `yaml:"headers"`
 }
 
 type PipelineJob struct {

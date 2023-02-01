@@ -15,11 +15,11 @@ spec:
     - name: item1
       stage: stage1
       timeout: 30s
+      async:
+        enabled: true
+        callbackUrlHeader: x-callback-url
       action:
         http:
-          async:
-            enabled: true
-            callbackUrlHeader: x-callback-url
           method: POST
           url: http://127.0.0.1:8080/async-function/nodeinfo # Use the async workflow
           data:
