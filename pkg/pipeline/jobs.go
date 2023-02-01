@@ -9,6 +9,7 @@ import (
 
 type Job struct {
 	config.PipelineJob
+	AsyncJob *AsyncJob
 }
 
 func (j *Job) getAction() (Action, error) {
@@ -35,6 +36,12 @@ func (j *Job) Exec(p *Pipeline) (*Result, error) {
 
 	return action.Execute(p, j)
 }
+
+type AsyncJob struct {
+	ID string
+}
+
+type AsyncCallback func() error
 
 type Result struct {
 	Status  int            `json:"status"`

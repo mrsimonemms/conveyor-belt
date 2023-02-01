@@ -3,6 +3,7 @@ package pipeline
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -49,6 +50,11 @@ func (h *actionHttp) Execute(p *Pipeline, j *Job) (result *Result, err error) {
 	// @todo(sje): support multiple content types
 	req.Header.Set("Content-Type", "application/json")
 
+	if j.Async != nil && j.Async.Enabled {
+		// Async call
+		req.Header.Set(j.Async.CallbackURLHeader, fmt.Sprintf("%s/async/%s", p.AsyncDomain, j.AsyncJob.ID))
+	}
+
 	res, err := client.Do(req)
 	if err != nil {
 		return
@@ -77,5 +83,5 @@ func (h *actionHttp) Execute(p *Pipeline, j *Job) (result *Result, err error) {
 		return
 	}
 
-	return result, nil
+	return
 }

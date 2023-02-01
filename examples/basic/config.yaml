@@ -4,19 +4,24 @@ metadata:
   name: basic
 spec:
   port: 3000
+  async:
+    domain: http://localhost:3000
   stages:
     # Stages are groups that control the order things are run in - there can be >= 0 items in each stage
     - stage1
     - stage2
   jobs:
-    # Define the jobs. Stages are run in parallel and can receive data on the {{ .Data }} variable from a previous job
+    # Define the jobs. Stages are run in parallel and can receive data on the {{ .Data }} variable from a previous stage's job
     - name: item1
       stage: stage1
       timeout: 30s
+      async:
+        enabled: true
+        callbackUrlHeader: x-callback-url
       action:
         http:
           method: POST
-          url: https://eosv8e8x84ccn8d.m.pipedream.net?stage=stage1&name=item1
+          url: http://127.0.0.1:8080/async-function/nodeinfo # Use the async workflow
           data:
             hello: world
             oi oi: true

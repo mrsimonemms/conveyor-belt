@@ -1,6 +1,7 @@
 package config
 
 import (
+	"net/http"
 	"time"
 
 	"k8s.io/utils/pointer"
@@ -18,11 +19,16 @@ type Metadata struct {
 }
 
 type PipelineConfig struct {
+	Async    *PipelineAsync    `yaml:"async,omitempty"`
 	Error    *PipelineJob      `yaml:"error,omitempty"`
 	Jobs     []PipelineJob     `yaml:"jobs"`
 	Port     int               `yaml:"port"`
 	Stages   []string          `yaml:"stages"`
 	Triggers []PipelineTrigger `yaml:"triggers"`
+}
+
+type PipelineAsync struct {
+	Domain string `yaml:"domain"`
 }
 
 type PipelineAction struct {
@@ -39,16 +45,23 @@ func (a PipelineAction) GetActionKey() *string {
 
 // @todo(sje): might be able to use something else
 type PipelineActionHTTP struct {
-	Method string         `yaml:"method"`
-	URL    string         `yaml:"url"`
-	Data   map[string]any `yaml:"data"`
+	Method  string         `yaml:"method"`
+	URL     string         `yaml:"url"`
+	Data    map[string]any `yaml:"data"`
+	Headers http.Header    `yaml:"headers"`
 }
 
 type PipelineJob struct {
-	Name    string         `yaml:"name"`
-	Stage   string         `yaml:"stage"`
-	Action  PipelineAction `yaml:"action"`
-	Timeout *time.Duration `yaml:"timeout,omitempty"`
+	Async   *PipelineJobAsync `yaml:"async,omitempty"`
+	Name    string            `yaml:"name"`
+	Stage   string            `yaml:"stage"`
+	Action  PipelineAction    `yaml:"action"`
+	Timeout *time.Duration    `yaml:"timeout,omitempty"`
+}
+
+type PipelineJobAsync struct {
+	Enabled           bool   `yaml:"enabled"`
+	CallbackURLHeader string `yaml:"callbackUrlHeader"`
 }
 
 type PipelineTrigger struct {

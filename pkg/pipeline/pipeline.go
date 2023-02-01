@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"os"
 	"sync"
 	"time"
 
@@ -17,20 +18,44 @@ import (
 )
 
 type Pipeline struct {
-	Error    *Job                         `json:"-"`        // The error is used as a circuit-breaker
-	Name     string                       `json:"name"`     // The pipeline name
-	Jobs     *list.List                   `json:"-"`        // The jobs to run in stage order
-	Response map[string]map[string]Result `json:"response"` // The collated responses from each call - keys are "stage" and "job"
-	Stages   []string                     `json:"stages"`   // Stages and their ordering
-	Time     struct {
+	Error       *Job                         `json:"-"`        // The error is used as a circuit-breaker
+	Name        string                       `json:"name"`     // The pipeline name
+	AsyncDomain string                       `json:"-"`        // The domain name this is available on
+	Jobs        *list.List                   `json:"-"`        // The jobs to run in stage order
+	Response    map[string]map[string]Result `json:"response"` // The collated responses from each call - keys are "stage" and "job"
+	Stages      []string                     `json:"stages"`   // Stages and their ordering
+	Time        struct {
 		Start time.Time `json:"start"` // Used to calculate the execution time
 		Total Duration  `json:"total"` // Used to display for the output
 	} `json:"executionTime"`
 }
 
+var asyncCallbacks map[string]AsyncCallback
+
+func addAsyncCallback(f AsyncCallback) string {
+	if len(asyncCallbacks) == 0 {
+		asyncCallbacks = make(map[string]AsyncCallback)
+	}
+
+	id := uuid.NewString()
+	asyncCallbacks[id] = f
+
+	return id
+}
+
+func GetCallback(id string) (AsyncCallback, error) {
+	cb, ok := asyncCallbacks[id]
+	if !ok {
+		return nil, ErrUnknownAsyncCallback
+	}
+
+	return cb, nil
+}
+
 type Stage struct {
 	Stage string
 	Jobs  []Job
+	Async *config.PipelineAsync
 }
 
 type CompletionAction func(*Pipeline, zerolog.Logger)
@@ -78,6 +103,17 @@ func (p *Pipeline) Run(postActions ...CompletionAction) error {
 
 			go func(job Job) {
 				defer wg.Done()
+
+				if job.PipelineJob.Async != nil && job.PipelineJob.Async.Enabled {
+					job.AsyncJob = &AsyncJob{
+						ID: addAsyncCallback(func() error {
+							fmt.Println("this is the async callback")
+							os.Exit(1)
+
+							return nil
+						}),
+					}
+				}
 
 				jobLog.Info().Msg("Executing job")
 
@@ -171,6 +207,7 @@ func Build(cfg *config.Config) (*Pipeline, error) {
 		jobList.PushBack(Stage{
 			Stage: s,
 			Jobs:  jobs[s],
+			Async: cfg.Spec.Async,
 		})
 	}
 
@@ -186,10 +223,11 @@ func Build(cfg *config.Config) (*Pipeline, error) {
 	}
 
 	return &Pipeline{
-		Error:  errorJob,
-		Name:   cfg.Metadata.Name,
-		Jobs:   jobList,
-		Stages: stages,
+		Error:       errorJob,
+		AsyncDomain: cfg.Spec.Async.Domain,
+		Name:        cfg.Metadata.Name,
+		Jobs:        jobList,
+		Stages:      stages,
 	}, nil
 }
 
