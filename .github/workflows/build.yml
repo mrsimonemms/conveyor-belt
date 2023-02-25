@@ -3,6 +3,7 @@ on:
   - pull_request
   - push
 permissions:
+  contents: write
   packages: write
 jobs:
   test:
@@ -63,6 +64,14 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: '>=1.19.0'
+
+      - run: go version
+
+      - name: Install Go dependencies
+        run: go install ./...
+
+      - name: Lint Go
+        uses: golangci/golangci-lint-action@v3
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -126,7 +135,7 @@ jobs:
             GIT_REPO=${{ steps.docker.outputs.gitRepo }}
             VERSION=${{ steps.docker.outputs.version }}
           platforms: ${{ steps.docker.outputs.platforms }}
-          push: ${{ github.ref == 'refs/heads/main' }} 
+          push: ${{ github.ref == 'refs/heads/main' }}
           tags: ${{ steps.docker.outputs.image_name }}
 
       - name: Run GoReleaser
@@ -134,6 +143,7 @@ jobs:
         uses: goreleaser/goreleaser-action@v4
         with:
           version: latest
-          args: release --rm-dist
+          args: release --clean
         env:
+          GIT_REPO: ${{ steps.docker.outputs.gitRepo }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
